@@ -1,21 +1,23 @@
-<h1><a href="https://friday-michaelnaeims-projects.vercel.app/?_vercel_share=ZhKcM7DirPn47AoBzr2bMNmVR9zcJnGn">Friday</a></h1>
-
+<h1>Friday</h1>
 <p>
-    Privacy-first AI meeting assistant for local capture, live transcription, and meeting summaries. Friday is a native desktop app that records and summarizes meetings without shipping your raw audio or transcripts to the cloud. The product is built on a privacy-first local-first architecture with a Tauri desktop shell, Rust audio/transcription services, and a Next.js interface.
+    Privacy-first AI meeting assistant for local capture, live transcription, and meeting summaries. Friday is a native desktop app that records and summarizes meetings without shipping your raw audio or transcripts to the cloud. The product is built on a privacy-first local-first architecture with a Tauri desktop shell, Rust audio/transcription services, and a Next.js interface. 
+  
+  Website Link : [tinyurl.com/2nvsk8ek](https://tinyurl.com/2nvsk8ek)
+  
+  Demo Link : [youtu.be/QXsBkFJ8ack](https://youtu.be/QXsBkFJ8ack)
+
   </p>
 </div>
+
+
 <div align="center">
   <img src="docs/FRIDAY_logo.jpg" width="1250" alt="Friday logo" />
-</div>
-
-
-<div align="center">
-  <img src="docs/friday_demo.gif" width="650" alt="Friday demo" />
 </div>
 
 ---
 
 ## Table of Contents
+
 
 - [What Friday is for](#what-friday-is-for)
 - [Core capabilities](#core-capabilities)
