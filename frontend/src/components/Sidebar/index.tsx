@@ -456,18 +456,18 @@ const Sidebar: React.FC = () => {
         <div className="flex flex-col items-center space-y-4 mt-4">
           <Logo isCollapsed={isCollapsed} />
 
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => router.push('/')}
-                className={`p-2 rounded-lg transition-colors duration-150 ${isHomePage ? 'bg-secondary' : 'hover:bg-secondary'
-                  }`}
-              >
-                <Home className="w-5 h-5 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Home</p>
+	          <Tooltip>
+	            <TooltipTrigger asChild>
+	              <button
+	                onClick={() => router.push('/')}
+	                className={`p-2 rounded-lg transition-colors duration-150 ${isHomePage ? 'bg-secondary' : 'hover:bg-secondary'
+	                  }`}
+	              >
+	                <Home className="w-5 h-5 text-muted-foreground" />
+	              </button>
+	            </TooltipTrigger>
+	            <TooltipContent side="right">
+	              <p>Home</p>
             </TooltipContent>
           </Tooltip>
 
@@ -722,15 +722,15 @@ const Sidebar: React.FC = () => {
         <div className="flex-1 flex flex-col min-h-0">
           {/* Fixed navigation items */}
           <div className="flex-shrink-0">
-            {!isCollapsed && (
-              <div
-                onClick={() => router.push('/')}
-                className="p-3 text-lg font-semibold items-center hover:bg-secondary h-10 flex mx-3 mt-3 rounded-lg cursor-pointer"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                <span>Home</span>
-              </div>
-            )}
+	            {!isCollapsed && (
+	              <div
+	                onClick={() => router.push('/')}
+	                className="p-3 text-lg font-semibold items-center hover:bg-secondary h-10 flex mx-3 mt-3 rounded-lg cursor-pointer"
+	              >
+	                <Home className="w-4 h-4 mr-2" />
+	                <span>Home</span>
+	              </div>
+	            )}
           </div>
 
           {/* Content area */}

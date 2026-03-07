@@ -7,6 +7,7 @@ import { EmptyStateSummary } from '@/components/EmptyStateSummary';
 import { ModelConfig } from '@/components/ModelSettingsModal';
 import { SummaryGeneratorButtonGroup } from './SummaryGeneratorButtonGroup';
 import { SummaryUpdaterButtonGroup } from './SummaryUpdaterButtonGroup';
+import { MeetingCalendarLink } from './MeetingCalendarLink';
 import Analytics from '@/lib/analytics';
 import { RefObject } from 'react';
 
@@ -91,6 +92,8 @@ export function SummaryPanel({
     <div className="flex-1 min-w-0 flex flex-col bg-background overflow-hidden">
       {/* Title area */}
       <div className="p-4 border-b border-border bg-background/95 backdrop-blur-sm">
+        <MeetingCalendarLink meetingId={meeting.id} />
+
         {/* <EditableTitle
           title={meetingTitle}
           isEditing={isEditingTitle}
