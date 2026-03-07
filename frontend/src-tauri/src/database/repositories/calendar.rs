@@ -304,6 +304,29 @@ impl CalendarRepository {
         .await
     }
 
+    pub async fn list_upcoming_events(
+        pool: &SqlitePool,
+        account_id: &str,
+        from: &str,
+        until: &str,
+    ) -> Result<Vec<CalendarEventModel>, sqlx::Error> {
+        sqlx::query_as::<_, CalendarEventModel>(
+            r#"
+            SELECT * FROM calendar_events
+            WHERE account_id = ?
+              AND status IN ('confirmed', 'tentative')
+              AND end_at >= ?
+              AND start_at <= ?
+            ORDER BY start_at ASC
+            "#,
+        )
+        .bind(account_id)
+        .bind(from)
+        .bind(until)
+        .fetch_all(pool)
+        .await
+    }
+
     pub async fn get_event(
         pool: &SqlitePool,
         account_id: &str,

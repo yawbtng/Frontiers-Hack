@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, Bell } from 'lucide-react';
+import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, Bell, BrainCircuit } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidebar } from './SidebarProvider';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
@@ -453,6 +453,7 @@ const Sidebar: React.FC = () => {
     const isHomePage = pathname === '/';
     const isMeetingPage = pathname?.includes('/meeting-details');
     const isSettingsPage = pathname === '/settings';
+    const isAgentPage = pathname === '/agent';
 
     return (
       <TooltipProvider>
@@ -530,19 +531,15 @@ const Sidebar: React.FC = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => setNotificationsOpen(true)}
-                className="p-2 rounded-lg transition-colors duration-150 hover:bg-secondary relative"
+                onClick={() => router.push('/agent')}
+                className={`p-2 rounded-lg transition-colors duration-150 ${isAgentPage ? 'bg-secondary' : 'hover:bg-secondary'
+                  }`}
               >
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
+                <BrainCircuit className="w-5 h-5 text-muted-foreground" />
               </button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>Agent Activity</p>
+              <p>Agent Inbox</p>
             </TooltipContent>
           </Tooltip>
 
@@ -753,6 +750,15 @@ const Sidebar: React.FC = () => {
 	                <span>Home</span>
 	              </div>
 	            )}
+            {!isCollapsed && (
+              <div
+                onClick={() => router.push('/agent')}
+                className="p-3 text-lg font-semibold items-center hover:bg-secondary h-10 flex mx-3 mt-1 rounded-lg cursor-pointer"
+              >
+                <BrainCircuit className="w-4 h-4 mr-2" />
+                <span>Agent Inbox</span>
+              </div>
+            )}
           </div>
 
           {/* Content area */}
@@ -825,11 +831,19 @@ const Sidebar: React.FC = () => {
             )}
 
             <button
+              onClick={() => router.push('/agent')}
+              className="w-full flex items-center justify-center px-3 py-1.5 mt-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm"
+            >
+              <BrainCircuit className="w-4 h-4 mr-2" />
+              <span>Agent Inbox</span>
+            </button>
+
+            <button
               onClick={() => setNotificationsOpen(true)}
               className="w-full flex items-center justify-center px-3 py-1.5 mt-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm relative"
             >
               <Bell className="w-4 h-4 mr-2" />
-              <span>Agent Activity</span>
+              <span>Notifications</span>
               {unreadCount > 0 && (
                 <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {unreadCount > 9 ? '9+' : unreadCount}

@@ -1,6 +1,7 @@
 use crate::calendar::service;
 use crate::calendar::types::{
     CalendarLinkCandidate, CalendarStatusResponse, CalendarSyncResult, LinkedCalendarEvent,
+    UpcomingCalendarEvent,
 };
 use tauri::{AppHandle, Runtime};
 
@@ -12,10 +13,25 @@ pub async fn calendar_get_status<R: Runtime>(
 }
 
 #[tauri::command]
+pub async fn calendar_list_upcoming<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<Vec<UpcomingCalendarEvent>, String> {
+    service::list_upcoming_events(&app).await
+}
+
+#[tauri::command]
 pub async fn calendar_connect_google<R: Runtime>(
     app: AppHandle<R>,
+    write_access: Option<bool>,
 ) -> Result<CalendarStatusResponse, String> {
-    service::connect_google(&app).await
+    service::connect_google(&app, write_access.unwrap_or(false)).await
+}
+
+#[tauri::command]
+pub async fn calendar_upgrade_google_access<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<CalendarStatusResponse, String> {
+    service::connect_google(&app, true).await
 }
 
 #[tauri::command]

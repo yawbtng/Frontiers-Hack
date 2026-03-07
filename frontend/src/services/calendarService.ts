@@ -11,6 +11,7 @@ export interface CalendarAccountSummary {
 export interface CalendarStatusResponse {
   client_configured: boolean;
   connected: boolean;
+  can_write: boolean;
   syncing: boolean;
   account: CalendarAccountSummary | null;
 }
@@ -58,13 +59,35 @@ export interface CalendarLinkCandidate {
   reason: string;
 }
 
+export interface UpcomingCalendarEvent {
+  provider_event_id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  organizer_email: string | null;
+  organizer_name: string | null;
+  attendees: CalendarAttendeeSummary[];
+  conference_url: string | null;
+  html_link: string | null;
+}
+
 class CalendarService {
   async getStatus(): Promise<CalendarStatusResponse> {
     return invoke<CalendarStatusResponse>('calendar_get_status');
   }
 
-  async connectGoogle(): Promise<CalendarStatusResponse> {
-    return invoke<CalendarStatusResponse>('calendar_connect_google');
+  async listUpcoming(): Promise<UpcomingCalendarEvent[]> {
+    return invoke<UpcomingCalendarEvent[]>('calendar_list_upcoming');
+  }
+
+  async connectGoogle(writeAccess = false): Promise<CalendarStatusResponse> {
+    return invoke<CalendarStatusResponse>('calendar_connect_google', {
+      writeAccess,
+    });
+  }
+
+  async upgradeGoogleAccess(): Promise<CalendarStatusResponse> {
+    return invoke<CalendarStatusResponse>('calendar_upgrade_google_access');
   }
 
   async disconnectGoogle(): Promise<CalendarStatusResponse> {
