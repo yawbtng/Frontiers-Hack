@@ -1,6 +1,6 @@
 # Friday Privacy Policy
 
-*Last updated: 3/7/2026*
+**Last updated: 3/7/2026**
 
 ## Our Privacy-First Commitment
 
