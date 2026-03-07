@@ -7,11 +7,6 @@
   <img src="docs/FRIDAY_logo.jpg" width="1250" alt="Friday logo" />
 </div>
 
-
-<div align="center">
-  <img src="docs/friday_demo.gif" width="650" alt="Friday demo" />
-</div>
-
 ---
 
 ## Table of Contents
