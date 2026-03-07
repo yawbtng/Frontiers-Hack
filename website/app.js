@@ -48,48 +48,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // Video Modal Logic
+    // YouTube Modal Logic
     const videoModal = document.getElementById('videoModal');
-    const closeVideoModal = document.getElementById('closeVideoModal');
+    const modalOverlay = document.getElementById('modalOverlay');
     const youtubeIframe = document.getElementById('youtubeIframe');
-    const openVideoBtns = document.querySelectorAll('.open-video-modal');
+    
+    // Triggers
+    const triggerBox = document.getElementById('hero-video-trigger');
+    const navWatchBtn = document.getElementById('nav-watch-btn');
+    
+    const youtubeUrl = "https://www.youtube.com/embed/XqZsoesa55w?autoplay=1";
 
-    // The YouTube embed URL the user wants
-    const videoSrc = "https://www.youtube.com/embed/XqZsoesa55w?autoplay=1";
-
-    openVideoBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            youtubeIframe.src = videoSrc;
+    function openModal() {
+        if(videoModal && youtubeIframe) {
             videoModal.classList.add('active');
-            // Disable lenis scroll when modal is open
-            lenis.stop();
-        });
-    });
-
-    function closeModal() {
-        videoModal.classList.remove('active');
-        // Stop video playback by clearing src
-        setTimeout(() => {
-            youtubeIframe.src = "";
-        }, 300); // Wait for transition to finish
-        // Resume lenis scroll
-        lenis.start();
+            youtubeIframe.src = youtubeUrl;
+        }
     }
 
-    closeVideoModal.addEventListener('click', closeModal);
-
-    // Close on background click
-    videoModal.addEventListener('click', (e) => {
-        if (e.target === videoModal) {
-            closeModal();
+    function closeModal() {
+        if(videoModal && youtubeIframe) {
+            videoModal.classList.remove('active');
+            youtubeIframe.src = ""; // Clear src to stop video
         }
-    });
+    }
 
-    // Close on Escape key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && videoModal.classList.contains('active')) {
-            closeModal();
-        }
-    });
+    if(triggerBox) triggerBox.addEventListener('click', openModal);
+    if(navWatchBtn) navWatchBtn.addEventListener('click', openModal);
+    if(modalOverlay) modalOverlay.addEventListener('click', closeModal);
 });
