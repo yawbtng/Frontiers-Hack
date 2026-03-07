@@ -78,7 +78,7 @@ Frontend HTTP/WebSocket   <->  FastAPI backend  <->  SQLite + LLM providers
 ## Requirements
 
 - Rust (stable toolchain)
-- Node.js 20+ and `pnpm`
+- Node.js 20+ and pnpm
 - Python 3.8+ (for backend workflows)
 - On macOS: microphone + screen recording permission for full system-audio capture
 - GPU support depends on platform:
