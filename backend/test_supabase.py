@@ -33,10 +33,28 @@ try:
     
     # Also verify other tables exist
     print("\n🔄 Checking all tables...")
-    tables = ["meetings", "transcripts", "summary_processes", "transcript_chunks", "transcript_settings"]
-    for table in tables:
+    tables = {
+        # Original meeting tables
+        "meetings": "id",
+        "transcripts": "id", 
+        "summary_processes": "meeting_id",
+        "transcript_chunks": "meeting_id",
+        "transcript_settings": "id",
+        "settings": "id",
+        # AI Assistant tables
+        "users": "id",
+        "sessions": "id",
+        "messages": "id",
+        "tool_calls": "id",
+        "approvals": "id",
+        "tasks": "id",
+        "user_context": "id",
+        "checkpoints": "id",
+        "heartbeat_state": "id"
+    }
+    for table, pk in tables.items():
         try:
-            supabase.table(table).select("id").limit(1).execute()
+            supabase.table(table).select(pk).limit(1).execute()
             print(f"   ✅ {table}")
         except Exception as e:
             print(f"   ❌ {table}: {e}")
