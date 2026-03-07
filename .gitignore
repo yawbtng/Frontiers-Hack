@@ -78,3 +78,7 @@ target/
 
 frontend/src-tauri/binaries/
 Cargo.lock
+
+# Environment files with credentials
+temp.env
+*.env.local
