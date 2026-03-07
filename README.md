@@ -1,4 +1,4 @@
-<h1><a href="https://friday-michaelnaeims-projects.vercel.app/?_vercel_share=ZhKcM7DirPn47AoBzr2bMNmVR9zcJnGn" target="_blank">Friday</a></h1>
+# [Friday](https://github.com/yawbtng/Frontiers-Hack/blob/main/README.md)
   <p>
     Privacy-first AI meeting assistant for local capture, live transcription, and meeting summaries. Friday is a native desktop app that records and summarizes meetings without shipping your raw audio or transcripts to the cloud. The product is built on a privacy-first local-first architecture with a Tauri desktop shell, Rust audio/transcription services, and a Next.js interface.
   </p>
