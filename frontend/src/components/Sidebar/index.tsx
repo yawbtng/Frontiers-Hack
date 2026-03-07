@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, BrainCircuit } from 'lucide-react';
+import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, Bell, BrainCircuit } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidebar } from './SidebarProvider';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
@@ -10,12 +10,14 @@ import { ModelConfig } from '@/components/ModelSettingsModal';
 import { SettingTabs } from '../SettingTabs';
 import { TranscriptModelProps } from '@/components/TranscriptSettings';
 import Analytics from '@/lib/analytics';
-import { invoke } from '@tauri-apps/api/core';
+import { safeInvoke, safeListen, isTauriAvailable } from '@/lib/tauri-compat';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { useImportDialog } from '@/contexts/ImportDialogContext';
 import { useConfig } from '@/contexts/ConfigContext';
+import { useNotifications } from '@/contexts/NotificationsContext';
+import NotificationsPanel from '@/components/Notifications/NotificationsPanel';
 
 import {
   Dialog,
@@ -61,6 +63,7 @@ const Sidebar: React.FC = () => {
   const { isRecording } = useRecordingState();
   const { openImportDialog } = useImportDialog();
   const { betaFeatures } = useConfig();
+  const { unreadCount, setIsOpen: setNotificationsOpen } = useNotifications();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['meetings']));
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModelSettings, setShowModelSettings] = useState(false);
@@ -115,12 +118,12 @@ const Sidebar: React.FC = () => {
       }
 
       try {
-        const data = await invoke('api_get_model_config') as any;
+        const data = await safeInvoke('api_get_model_config') as any;
         if (data && data.provider !== null) {
           // Fetch API key if not included and provider requires it
           if (data.provider !== 'ollama' && !data.apiKey) {
             try {
-              const apiKeyData = await invoke('api_get_api_key', {
+              const apiKeyData = await safeInvoke('api_get_api_key', {
                 provider: data.provider
               }) as string;
               data.apiKey = apiKeyData;
@@ -149,7 +152,7 @@ const Sidebar: React.FC = () => {
       }
 
       try {
-        const data = await invoke('api_get_transcript_config') as any;
+        const data = await safeInvoke('api_get_transcript_config') as any;
         if (data && data.provider !== null) {
           setTranscriptModelConfig(data);
         }
@@ -163,8 +166,7 @@ const Sidebar: React.FC = () => {
   // Listen for model config updates from other components
   useEffect(() => {
     const setupListener = async () => {
-      const { listen } = await import('@tauri-apps/api/event');
-      const unlisten = await listen<ModelConfig>('model-config-updated', (event) => {
+      const unlisten = await safeListen<ModelConfig>('model-config-updated', (event) => {
         console.log('Sidebar received model-config-updated event:', event.payload);
         setModelConfig(event.payload);
       });
@@ -185,7 +187,7 @@ const Sidebar: React.FC = () => {
   // Handle model config save
   const handleSaveModelConfig = async (config: ModelConfig) => {
     try {
-      await invoke('api_save_model_config', {
+      await safeInvoke('api_save_model_config', {
         provider: config.provider,
         model: config.model,
         whisperModel: config.whisperModel,
@@ -198,8 +200,10 @@ const Sidebar: React.FC = () => {
       setSettingsSaveSuccess(true);
 
       // Emit event to sync other components
-      const { emit } = await import('@tauri-apps/api/event');
-      await emit('model-config-updated', config);
+      if (isTauriAvailable()) {
+        const { emit } = await import('@tauri-apps/api/event');
+        await emit('model-config-updated', config);
+      }
 
       // Track settings change
       await Analytics.trackSettingsChanged('model_config', `${config.provider}_${config.model}`);
@@ -219,7 +223,7 @@ const Sidebar: React.FC = () => {
       };
       console.log('Saving transcript config with payload:', payload);
 
-      await invoke('api_save_transcript_config', {
+      await safeInvoke('api_save_transcript_config', {
         provider: payload.provider,
         model: payload.model,
         apiKey: payload.apiKey,
@@ -325,8 +329,7 @@ const Sidebar: React.FC = () => {
     };
 
     try {
-      const { invoke } = await import('@tauri-apps/api/core');
-      await invoke('api_delete_meeting', {
+      await safeInvoke('api_delete_meeting', {
         meetingId: itemId,
       });
       console.log('Meeting deleted successfully');
@@ -384,7 +387,7 @@ const Sidebar: React.FC = () => {
     }
 
     try {
-      await invoke('api_save_meeting_title', {
+      await safeInvoke('api_save_meeting_title', {
         meetingId: meetingId,
         title: newTitle,
       });
@@ -836,6 +839,19 @@ const Sidebar: React.FC = () => {
             </button>
 
             <button
+              onClick={() => setNotificationsOpen(true)}
+              className="w-full flex items-center justify-center px-3 py-1.5 mt-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm relative"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => router.push('/settings')}
               className="w-full flex items-center justify-center px-3 py-1.5 mt-1 mb-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm"
             >
@@ -908,6 +924,9 @@ const Sidebar: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel />
     </div>
   );
 };

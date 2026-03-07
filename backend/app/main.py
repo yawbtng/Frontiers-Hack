@@ -1,3 +1,6 @@
+from contextlib import asynccontextmanager
+import asyncio
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,6 +18,13 @@ import time
 
 # Load environment variables
 load_dotenv()
+
+# Import new routers
+from api.health import router as health_router
+from api.chat import router as chat_router
+from api.tasks import router as tasks_router
+from api.sessions import router as sessions_router
+from api.notifications import router as notifications_router
 
 # Configure logger with line numbers and function names
 logger = logging.getLogger(__name__)
@@ -35,10 +45,37 @@ console_handler.setFormatter(formatter)
 if not logger.handlers:
     logger.addHandler(console_handler)
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan: start/stop background tasks."""
+    heartbeat_task = None
+    try:
+        from config import settings
+        if settings.heartbeat_enabled:
+            from services.heartbeat import heartbeat_loop
+            heartbeat_task = asyncio.create_task(
+                heartbeat_loop(interval=settings.heartbeat_interval_seconds)
+            )
+            logger.info("Heartbeat loop started")
+    except Exception as e:
+        logger.warning(f"Heartbeat not started: {e}")
+
+    yield
+
+    if heartbeat_task:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
+        logger.info("Heartbeat loop stopped")
+
+
 app = FastAPI(
-    title="Meeting Summarizer API",
-    description="API for processing and summarizing meeting transcripts",
-    version="1.0.0"
+    title="FRIDAY - AI Workspace Orchestrator",
+    description="Meeting assistant + LangGraph agent for ADHD workspace management",
+    version="2.0.0",
+    lifespan=lifespan,
 )
 
 # Configure CORS
@@ -50,6 +87,13 @@ app.add_middleware(
     allow_headers=["*"],     # Allow all headers
     max_age=3600,            # Cache preflight requests for 1 hour
 )
+
+# Include new FRIDAY agent routers
+app.include_router(health_router)
+app.include_router(chat_router, prefix="/friday")
+app.include_router(tasks_router, prefix="/tasks")
+app.include_router(sessions_router, prefix="/sessions")
+app.include_router(notifications_router, prefix="/friday/notifications")
 
 # Global database manager instance for meeting management endpoints
 db = DatabaseManager()
@@ -543,6 +587,11 @@ async def save_transcript(request: SaveTranscriptRequest):
             )
 
         logger.info("Transcripts saved successfully")
+
+        # Trigger autonomous agent scan of the new meeting
+        from services.heartbeat import trigger_meeting_scan
+        asyncio.create_task(trigger_meeting_scan(meeting_id, request.meeting_title))
+
         return {"status": "success", "message": "Transcript saved successfully", "meeting_id": meeting_id}
     except Exception as e:
         logger.error(f"Error saving transcript: {str(e)}", exc_info=True)
@@ -657,7 +706,7 @@ async def friday_extract(request: FridayExtractRequest):
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Cleanup on API shutdown"""
+    """Cleanup on API shutdown."""
     logger.info("API shutting down, cleaning up resources")
     try:
         processor.cleanup()

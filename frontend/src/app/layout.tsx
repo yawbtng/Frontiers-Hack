@@ -9,10 +9,10 @@ import AnalyticsProvider from '@/components/AnalyticsProvider'
 import { Toaster, toast } from 'sonner'
 import "sonner/dist/styles.css"
 import { useState, useEffect, useCallback } from 'react'
-import { listen, UnlistenFn } from '@tauri-apps/api/event'
-import { invoke } from '@tauri-apps/api/core'
+import { safeInvoke, safeListen, isTauriAvailable } from '@/lib/tauri-compat'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { RecordingStateProvider } from '@/contexts/RecordingStateContext'
+import { NotificationsProvider } from '@/contexts/NotificationsContext'
 import { OllamaDownloadProvider } from '@/contexts/OllamaDownloadContext'
 import { TranscriptProvider } from '@/contexts/TranscriptContext'
 import { ConfigProvider, useConfig } from '@/contexts/ConfigContext'
@@ -78,7 +78,13 @@ export default function RootLayout({
 
   useEffect(() => {
     // Check onboarding status first
-    invoke<{ completed: boolean } | null>('get_onboarding_status')
+    if (!isTauriAvailable()) {
+      console.log('[Layout] Tauri not available — skipping onboarding for browser dev')
+      setShowOnboarding(false)
+      setOnboardingCompleted(true)
+      return
+    }
+    safeInvoke<{ completed: boolean } | null>('get_onboarding_status')
       .then((status) => {
         const isComplete = status?.completed ?? false
         setOnboardingCompleted(isComplete)
@@ -92,7 +98,6 @@ export default function RootLayout({
       })
       .catch((error) => {
         console.error('[Layout] Failed to check onboarding status:', error)
-        // Default to showing onboarding if we can't check
         setShowOnboarding(true)
         setOnboardingCompleted(false)
       })
@@ -108,7 +113,7 @@ export default function RootLayout({
   }, []);
   useEffect(() => {
     // Listen for tray recording toggle request
-    const unlisten = listen('request-recording-toggle', () => {
+    const unlistenPromise = safeListen('request-recording-toggle', () => {
       console.log('[Layout] Received request-recording-toggle from tray');
 
       if (showOnboarding) {
@@ -123,7 +128,7 @@ export default function RootLayout({
     });
 
     return () => {
-      unlisten.then(fn => fn());
+      unlistenPromise.then(fn => fn());
     };
   }, [showOnboarding]);
 
@@ -158,14 +163,14 @@ export default function RootLayout({
 
   // Listen for drag-drop events
   useEffect(() => {
-    if (showOnboarding) return; // Don't handle drops during onboarding
+    if (showOnboarding || !isTauriAvailable()) return; // Don't handle drops during onboarding or browser mode
 
-    const unlisteners: UnlistenFn[] = [];
+    const unlisteners: (() => void)[] = [];
     const cleanedUpRef = { current: false };
 
     const setupListeners = async () => {
       // Drag enter/over - show overlay only if beta feature is enabled
-      const unlistenDragEnter = await listen('tauri://drag-enter', () => {
+      const unlistenDragEnter = await safeListen('tauri://drag-enter', () => {
         if (loadBetaFeatures().importAndRetranscribe) {
           setShowDropOverlay(true);
         }
@@ -177,7 +182,7 @@ export default function RootLayout({
       unlisteners.push(unlistenDragEnter);
 
       // Drag leave - hide overlay
-      const unlistenDragLeave = await listen('tauri://drag-leave', () => {
+      const unlistenDragLeave = await safeListen('tauri://drag-leave', () => {
         setShowDropOverlay(false);
       });
       if (cleanedUpRef.current) {
@@ -188,7 +193,7 @@ export default function RootLayout({
       unlisteners.push(unlistenDragLeave);
 
       // Drop - process files
-      const unlistenDrop = await listen<{ paths: string[] }>('tauri://drag-drop', (event) => {
+      const unlistenDrop = await safeListen<{ paths: string[] }>('tauri://drag-drop', (event) => {
         setShowDropOverlay(false);
         handleFileDrop(event.payload.paths);
       });
@@ -241,31 +246,33 @@ export default function RootLayout({
                   <OnboardingProvider>
                     <UpdateCheckProvider>
                       <SidebarProvider>
-                        <TooltipProvider>
-                          <RecordingPostProcessingProvider>
-                            <ImportDialogProvider onOpen={handleOpenImportDialog}>
-                              {/* Download progress toast provider - listens for background downloads */}
-                              <DownloadProgressToastProvider />
+                        <NotificationsProvider>
+                          <TooltipProvider>
+                            <RecordingPostProcessingProvider>
+                              <ImportDialogProvider onOpen={handleOpenImportDialog}>
+                                {/* Download progress toast provider - listens for background downloads */}
+                                <DownloadProgressToastProvider />
 
-                              {/* Show onboarding or main app */}
-                              {showOnboarding ? (
-                                <OnboardingFlow onComplete={handleOnboardingComplete} />
-                              ) : (
-                                <div className="flex">
-                                  <Sidebar />
-                                  <MainContent>{children}</MainContent>
-                                </div>
-                              )}
-                              {/* Import audio overlay and dialog */}
-                              <ImportDropOverlay visible={showDropOverlay} />
-                              <ConditionalImportDialog
-                                showImportDialog={showImportDialog}
-                                handleImportDialogClose={handleImportDialogClose}
-                                importFilePath={importFilePath}
-                              />
-                            </ImportDialogProvider>
-                          </RecordingPostProcessingProvider>
-                        </TooltipProvider>
+                                {/* Show onboarding or main app */}
+                                {showOnboarding ? (
+                                  <OnboardingFlow onComplete={handleOnboardingComplete} />
+                                ) : (
+                                  <div className="flex">
+                                    <Sidebar />
+                                    <MainContent>{children}</MainContent>
+                                  </div>
+                                )}
+                                {/* Import audio overlay and dialog */}
+                                <ImportDropOverlay visible={showDropOverlay} />
+                                <ConditionalImportDialog
+                                  showImportDialog={showImportDialog}
+                                  handleImportDialogClose={handleImportDialogClose}
+                                  importFilePath={importFilePath}
+                                />
+                              </ImportDialogProvider>
+                            </RecordingPostProcessingProvider>
+                          </TooltipProvider>
+                        </NotificationsProvider>
                       </SidebarProvider>
                     </UpdateCheckProvider>
                   </OnboardingProvider>

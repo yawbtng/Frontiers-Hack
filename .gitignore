@@ -82,3 +82,4 @@ Cargo.lock
 # Environment files with credentials
 temp.env
 *.env.local
+.langgraph_api/
