@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload } from 'lucide-react';
+import { ChevronDown, ChevronRight, File, Settings, ChevronLeftCircle, ChevronRightCircle, Calendar, StickyNote, Home, Trash2, Mic, Square, Plus, Search, Pencil, NotebookPen, SearchIcon, X, Upload, Bell } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSidebar } from './SidebarProvider';
 import type { CurrentMeeting } from '@/components/Sidebar/SidebarProvider';
@@ -16,6 +16,8 @@ import { toast } from 'sonner';
 import { useRecordingState } from '@/contexts/RecordingStateContext';
 import { useImportDialog } from '@/contexts/ImportDialogContext';
 import { useConfig } from '@/contexts/ConfigContext';
+import { useNotifications } from '@/contexts/NotificationsContext';
+import NotificationsPanel from '@/components/Notifications/NotificationsPanel';
 
 import {
   Dialog,
@@ -61,6 +63,7 @@ const Sidebar: React.FC = () => {
   const { isRecording } = useRecordingState();
   const { openImportDialog } = useImportDialog();
   const { betaFeatures } = useConfig();
+  const { unreadCount, setIsOpen: setNotificationsOpen } = useNotifications();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['meetings']));
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showModelSettings, setShowModelSettings] = useState(false);
@@ -527,6 +530,25 @@ const Sidebar: React.FC = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
+                onClick={() => setNotificationsOpen(true)}
+                className="p-2 rounded-lg transition-colors duration-150 hover:bg-secondary relative"
+              >
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Agent Activity</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
                 onClick={() => router.push('/settings')}
                 className={`p-2 rounded-lg transition-colors duration-150 ${isSettingsPage ? 'bg-secondary' : 'hover:bg-secondary'
                   }`}
@@ -803,6 +825,19 @@ const Sidebar: React.FC = () => {
             )}
 
             <button
+              onClick={() => setNotificationsOpen(true)}
+              className="w-full flex items-center justify-center px-3 py-1.5 mt-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm relative"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              <span>Agent Activity</span>
+              {unreadCount > 0 && (
+                <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => router.push('/settings')}
               className="w-full flex items-center justify-center px-3 py-1.5 mt-1 mb-1 text-sm font-medium text-foreground bg-secondary hover:bg-muted rounded-lg transition-colors shadow-sm"
             >
@@ -875,6 +910,9 @@ const Sidebar: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Notifications Panel */}
+      <NotificationsPanel />
     </div>
   );
 };
