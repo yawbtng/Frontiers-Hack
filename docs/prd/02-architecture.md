@@ -111,6 +111,7 @@ Agent wants to send email:
 | Database | Supabase Postgres | Unified state + checkpointing; real-time subscriptions for heartbeat |
 | Streaming | SSE (not WebSocket) | Simpler, sufficient for our use case, matches InfoSavvy pattern |
 | Google Tools | `gws` CLI (Google Workspace CLI) | 100+ agent skills, dynamic API discovery via Google Discovery Service, structured JSON output, `--dry-run` for safe previewing; covers ALL Google Workspace APIs automatically |
+| Web Search | Exa | Neural search for real-time web info (company research, docs, news); `langchain-exa` integration |
 | Memory/RAG | Supermemory | Persistent semantic memory for patterns, entities, commitments |
 | Auth | Google OAuth via `gws auth` | Direct Google OAuth — user runs `gws auth login` once; no third-party auth layer needed |
 | LLM | Gemini (Google DeepMind) | Native Google ecosystem integration; structured JSON output; gemini-3.0-flash for speed, gemini-3.0-pro for complex reasoning |

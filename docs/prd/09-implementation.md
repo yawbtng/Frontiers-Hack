@@ -68,7 +68,9 @@ backend/
 - [ ] Implement `create_task` / `update_task` tools
 - [ ] Implement `get_user_context` / `save_user_context` tools
 - [ ] Set up Supermemory client and memory_search / memory_store tools
+- [ ] Set up Exa client and `exa_search` tool (`langchain-exa`)
 - [ ] Verify: "Create a task to review PR" → task appears in DB
+- [ ] Verify: "What's the latest on React 19?" → web search results returned
 
 ### Phase 6: Prompt Engineering (Hour 8-9)
 > Full layered prompts produce good responses.
@@ -148,6 +150,8 @@ GEMINI_API_KEY=your-gemini-key       # Google Gemini API
 
 SUPERMEMORY_API_KEY=your-key         # Supermemory semantic memory
 
+EXA_API_KEY=your-exa-key             # Exa neural web search
+
 # Google OAuth is handled by gws CLI (gws auth login)
 # No Google API keys needed in env vars — gws manages credentials in ~/.config/gws/
 
@@ -176,6 +180,7 @@ dependencies = [
     "pydantic-settings>=2.0",
     "httpx>=0.27",
     "python-dotenv>=1.0",
+    "langchain-exa>=0.2",
     "structlog>=24.0",
 ]
 ```

@@ -2,10 +2,11 @@
 
 ## Tool Architecture
 
-Tools are organized in three categories:
+Tools are organized in four categories:
 1. **gws CLI** — Google Workspace CLI with dynamic API discovery and 100+ agent skills
-2. **Supermemory Tools** — Semantic memory search and storage
-3. **Custom Supabase Tools** — Internal tools for operational state management
+2. **Exa** — Neural web search for real-time information beyond Google Workspace
+3. **Supermemory Tools** — Semantic memory search and storage
+4. **Custom Supabase Tools** — Internal tools for operational state management
 
 > **Why `gws` CLI?** The [Google Workspace CLI](https://github.com/googleworkspace/cli) dynamically discovers ALL Google Workspace APIs at runtime via Google's Discovery Service. It ships with 100+ agent skills (helpers, workflows, recipes, personas), outputs structured JSON, and supports `--dry-run` for safe previewing. One subprocess wrapper gives the LangGraph agent access to Gmail, Calendar, Docs, Drive, Sheets, Chat, Meet, Tasks, Keep, Forms, Slides, Admin, and more — with zero custom API code.
 
@@ -119,6 +120,38 @@ Multi-step task sequences like `recipe-block-focus-time`, `recipe-find-free-time
 
 **Personas** (10):
 Role-based skill bundles including `persona-exec-assistant`, `persona-project-manager`, `persona-team-lead`, `persona-researcher`.
+
+## Exa Web Search
+
+Exa is a neural search engine designed for AI agents. The `langchain-exa` integration provides LangGraph-compatible tools out of the box.
+
+### exa_search
+```python
+from langchain_exa import ExaSearchRetriever
+
+@tool
+async def exa_search(
+    query: str = Field(description="Natural language search query"),
+    num_results: int = Field(default=5, description="Number of results to return"),
+    search_type: str = Field(default="auto", description="Search type: 'auto', 'neural', or 'keyword'"),
+    use_autoprompt: bool = Field(default=True, description="Let Exa optimize the query for better results"),
+) -> list[dict]:
+    """Search the web for real-time information using Exa's neural search.
+
+    Use this when the user's question requires information BEYOND their
+    Google Workspace — news, research, documentation, public information,
+    company lookups, industry trends, etc.
+
+    Examples:
+    - "What's the latest on the React 19 release?" → web search
+    - "Find me info about Acme Corp before my meeting" → company research
+    - "What are best practices for OKR planning?" → knowledge search
+
+    Do NOT use this for:
+    - User's emails, calendar, or docs → use gws tools instead
+    - User's tasks or preferences → use Supabase/Supermemory tools instead
+    """
+```
 
 ## Custom Supabase Tools
 
@@ -257,10 +290,12 @@ TOOL_INTENT_MAP = {
         get_user_tasks,
         get_user_context,
         memory_search,
+        exa_search,
     ],
     "action": [
         gws,
         gws_schema,
+        exa_search,
         get_user_tasks,
         create_task,
         update_task,
