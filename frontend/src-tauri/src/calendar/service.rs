@@ -1,7 +1,7 @@
 use crate::calendar::types::{
     CalendarAccountSummary, CalendarAttendeeSummary, CalendarLinkCandidate, CalendarStatusResponse,
     CalendarSyncResult, LinkedCalendarEvent, PendingRecordingLink, StoredAttendee,
-    StoredOAuthTokens,
+    StoredOAuthTokens, UpcomingCalendarEvent,
 };
 use crate::database::models::{CalendarEventModel, ConnectedAccountModel};
 use crate::database::repositories::calendar::{
@@ -153,6 +153,56 @@ pub async fn get_status<R: Runtime>(app: &AppHandle<R>) -> Result<CalendarStatus
         syncing,
         account: account.map(account_to_summary),
     })
+}
+
+pub async fn list_upcoming_events<R: Runtime>(
+    app: &AppHandle<R>,
+) -> Result<Vec<UpcomingCalendarEvent>, String> {
+    let Some(app_state) = app.try_state::<AppState>() else {
+        return Ok(Vec::new());
+    };
+    let pool = app_state.db_manager.pool();
+
+    let Some(account) = CalendarRepository::get_google_account(pool)
+        .await
+        .map_err(|e| format!("Failed to load Google Calendar account: {}", e))?
+    else {
+        return Ok(Vec::new());
+    };
+
+    if account.connection_status != "connected" {
+        return Ok(Vec::new());
+    }
+
+    let now = Utc::now();
+    let from = (now - Duration::minutes(30)).to_rfc3339();
+    let until = (now + Duration::hours(24)).to_rfc3339();
+
+    let events = CalendarRepository::list_upcoming_events(pool, &account.id, &from, &until)
+        .await
+        .map_err(|e| format!("Failed to load upcoming events: {}", e))?;
+
+    Ok(events
+        .into_iter()
+        .map(|e| {
+            let attendees: Vec<CalendarAttendeeSummary> = e
+                .attendees_json
+                .as_deref()
+                .and_then(|json| serde_json::from_str(json).ok())
+                .unwrap_or_default();
+            UpcomingCalendarEvent {
+                provider_event_id: e.provider_event_id,
+                title: e.title,
+                start_at: e.start_at,
+                end_at: e.end_at,
+                organizer_email: e.organizer_email,
+                organizer_name: e.organizer_name,
+                attendees,
+                conference_url: e.conference_url,
+                html_link: e.html_link,
+            }
+        })
+        .collect())
 }
 
 pub async fn connect_google<R: Runtime>(

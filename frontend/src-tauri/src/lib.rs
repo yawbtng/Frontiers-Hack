@@ -665,6 +665,7 @@ pub fn run() {
             api::debug_backend_connection,
             api::open_external_url,
             calendar::commands::calendar_get_status,
+            calendar::commands::calendar_list_upcoming,
             calendar::commands::calendar_connect_google,
             calendar::commands::calendar_disconnect_google,
             calendar::commands::calendar_sync_now,

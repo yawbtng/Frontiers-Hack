@@ -65,6 +65,19 @@ pub struct CalendarLinkCandidate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpcomingCalendarEvent {
+    pub provider_event_id: String,
+    pub title: String,
+    pub start_at: String,
+    pub end_at: String,
+    pub organizer_email: Option<String>,
+    pub organizer_name: Option<String>,
+    pub attendees: Vec<CalendarAttendeeSummary>,
+    pub conference_url: Option<String>,
+    pub html_link: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct StoredOAuthTokens {
     pub access_token: String,
     pub refresh_token: Option<String>,

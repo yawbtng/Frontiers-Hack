@@ -1,6 +1,7 @@
 use crate::calendar::service;
 use crate::calendar::types::{
     CalendarLinkCandidate, CalendarStatusResponse, CalendarSyncResult, LinkedCalendarEvent,
+    UpcomingCalendarEvent,
 };
 use tauri::{AppHandle, Runtime};
 
@@ -9,6 +10,13 @@ pub async fn calendar_get_status<R: Runtime>(
     app: AppHandle<R>,
 ) -> Result<CalendarStatusResponse, String> {
     service::get_status(&app).await
+}
+
+#[tauri::command]
+pub async fn calendar_list_upcoming<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<Vec<UpcomingCalendarEvent>, String> {
+    service::list_upcoming_events(&app).await
 }
 
 #[tauri::command]

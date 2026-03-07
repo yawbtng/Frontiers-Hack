@@ -58,9 +58,25 @@ export interface CalendarLinkCandidate {
   reason: string;
 }
 
+export interface UpcomingCalendarEvent {
+  provider_event_id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  organizer_email: string | null;
+  organizer_name: string | null;
+  attendees: CalendarAttendeeSummary[];
+  conference_url: string | null;
+  html_link: string | null;
+}
+
 class CalendarService {
   async getStatus(): Promise<CalendarStatusResponse> {
     return invoke<CalendarStatusResponse>('calendar_get_status');
+  }
+
+  async listUpcoming(): Promise<UpcomingCalendarEvent[]> {
+    return invoke<UpcomingCalendarEvent[]>('calendar_list_upcoming');
   }
 
   async connectGoogle(): Promise<CalendarStatusResponse> {
